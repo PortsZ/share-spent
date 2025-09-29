@@ -1,0 +1,343 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Group {
+  id          String    @id @default(cuid())
+  name        String
+  description String?   @db.Text
+  avatarUrl   String?
+  plan        Plan      @default(FREE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+
+  members      GroupMember[]
+  invitations  GroupInvitation[]
+  receipts     Receipt[]
+  categories   Category[]
+  payments     Payment[]
+  activities   ActivityLog[]
+  Notification Notification[]
+
+  @@index([plan])
+  @@index([archivedAt])
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  groupId String
+  userId  String
+
+  group Group       @relation(fields: [groupId], references: [id])
+  user  UserProfile @relation(fields: [userId], references: [id])
+
+  receiptsAsPayer  Receipt[]            @relation("ReceiptPayer")
+  lineItems        LineItemAssignment[]
+  paymentsPaid     Payment[]            @relation("PaymentPayer")
+  paymentsReceived Payment[]            @relation("PaymentPayee")
+  GroupInvitation  GroupInvitation[]
+  Receipt          Receipt[]
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model GroupInvitation {
+  id        String           @id @default(cuid())
+  email     String
+  role      GroupRole        @default(MEMBER)
+  status    InvitationStatus @default(PENDING)
+  token     String           @unique
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  groupId     String
+  invitedById String
+
+  group     Group       @relation(fields: [groupId], references: [id])
+  invitedBy GroupMember @relation(fields: [invitedById], references: [id])
+
+  @@index([groupId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model UserProfile {
+  id          String   @id @default(cuid())
+  clerkId     String   @unique
+  email       String
+  displayName String
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships  GroupMember[]
+  activities   ActivityLog[]
+  Notification Notification[]
+}
+
+model Receipt {
+  id           String        @id @default(cuid())
+  status       ReceiptStatus @default(PROCESSING)
+  merchantName String?
+  receiptDate  DateTime?
+  totalAmount  Decimal       @db.Decimal(18, 2)
+  currency     String        @default("USD")
+  notes        String?       @db.Text
+  imageUrl     String?
+  taxAmount    Decimal?      @db.Decimal(18, 2)
+  tipAmount    Decimal?      @db.Decimal(18, 2)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  groupId      String
+  payerId      String?
+  uploadedById String
+
+  group      Group        @relation(fields: [groupId], references: [id])
+  payer      GroupMember? @relation("ReceiptPayer", fields: [payerId], references: [id])
+  uploadedBy GroupMember  @relation(fields: [uploadedById], references: [id])
+
+  lineItems      LineItem[]
+  payments       Payment[]
+  activities     ActivityLog[]
+  AIParseRequest AIParseRequest[]
+
+  @@index([groupId])
+  @@index([payerId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum ReceiptStatus {
+  PROCESSING
+  PENDING_REVIEW
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model LineItem {
+  id          String         @id @default(cuid())
+  description String
+  quantity    Decimal        @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal        @db.Decimal(18, 2)
+  subtotal    Decimal        @db.Decimal(18, 2)
+  status      LineItemStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
+
+  receiptId  String
+  categoryId String?
+
+  receipt  Receipt   @relation(fields: [receiptId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  assignments LineItemAssignment[]
+  payments    PaymentLineItem[]
+  activities  ActivityLog[]
+
+  @@index([receiptId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+enum LineItemStatus {
+  PENDING
+  MATCHED
+  REVIEWED
+  CANCELLED
+}
+
+model LineItemAssignment {
+  id           String   @id @default(cuid())
+  sharePercent Decimal? @db.Decimal(5, 2)
+  shareAmount  Decimal? @db.Decimal(18, 2)
+  createdAt    DateTime @default(now())
+
+  lineItemId String
+  memberId   String
+
+  lineItem LineItem    @relation(fields: [lineItemId], references: [id])
+  member   GroupMember @relation(fields: [memberId], references: [id])
+
+  @@unique([lineItemId, memberId])
+  @@index([lineItemId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  color       String?
+  icon        String?
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+
+  groupId String
+
+  group     Group      @relation(fields: [groupId], references: [id])
+  lineItems LineItem[]
+
+  @@unique([groupId, name])
+  @@index([groupId])
+  @@index([archivedAt])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  amount      Decimal       @db.Decimal(18, 2)
+  currency    String        @default("USD")
+  status      PaymentStatus @default(PENDING)
+  paymentDate DateTime
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  groupId   String
+  receiptId String?
+  payerId   String
+  payeeId   String
+
+  group   Group       @relation(fields: [groupId], references: [id])
+  receipt Receipt?    @relation(fields: [receiptId], references: [id])
+  payer   GroupMember @relation("PaymentPayer", fields: [payerId], references: [id])
+  payee   GroupMember @relation("PaymentPayee", fields: [payeeId], references: [id])
+
+  lineItems  PaymentLineItem[]
+  activities ActivityLog[]
+
+  @@index([groupId])
+  @@index([receiptId])
+  @@index([status])
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model PaymentLineItem {
+  id         String  @id @default(cuid())
+  paymentId  String
+  lineItemId String
+  amount     Decimal @db.Decimal(18, 2)
+
+  payment  Payment  @relation(fields: [paymentId], references: [id])
+  lineItem LineItem @relation(fields: [lineItemId], references: [id])
+
+  @@unique([paymentId, lineItemId])
+  @@index([lineItemId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  userId   String
+  groupId  String?
+  entityId String?
+
+  user  UserProfile @relation(fields: [userId], references: [id])
+  group Group?      @relation(fields: [groupId], references: [id])
+
+  @@index([userId])
+  @@index([groupId])
+  @@index([readAt])
+}
+
+enum NotificationType {
+  RECEIPT_PROCESSING_FAILED
+  RECEIPT_READY_FOR_REVIEW
+  PAYMENT_PENDING
+  PAYMENT_CONFIRMED
+  INVITATION_RECEIVED
+}
+
+model ActivityLog {
+  id         String             @id @default(cuid())
+  actorId    String
+  groupId    String
+  entityId   String
+  entityType ActivityEntityType
+  action     String
+  before     Json?
+  after      Json?
+  occurredAt DateTime           @default(now())
+
+  actor      UserProfile @relation(fields: [actorId], references: [id])
+  group      Group       @relation(fields: [groupId], references: [id])
+  Receipt    Receipt?    @relation(fields: [receiptId], references: [id])
+  receiptId  String?
+  LineItem   LineItem?   @relation(fields: [lineItemId], references: [id])
+  lineItemId String?
+  Payment    Payment?    @relation(fields: [paymentId], references: [id])
+  paymentId  String?
+}
+
+enum ActivityEntityType {
+  RECEIPT
+  LINE_ITEM
+  PAYMENT
+  CATEGORY
+  GROUP
+  INVITATION
+}
+
+model AIParseRequest {
+  id              String        @id @default(cuid())
+  receiptId       String
+  status          AIParseStatus @default(PENDING)
+  requestPayload  Json
+  responsePayload Json?
+  errorMessage    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  receipt Receipt @relation(fields: [receiptId], references: [id])
+}
+
+enum AIParseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
