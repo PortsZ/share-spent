@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { cuid, paginationSchema, dateRangeSchema } from "./shared";
+import {
+  cuid,
+  paginationSchema,
+  dateRangeFields,
+  dateRangeRefinement,
+} from "./shared";
 
 export const activityEntityTypeSchema = z.enum([
   "RECEIPT",
@@ -17,7 +22,8 @@ export const listActivitySchema = z
     entityType: activityEntityTypeSchema.optional(),
     actorId: cuid().optional(),
   })
-  .merge(dateRangeSchema.partial())
-  .merge(paginationSchema);
+  .merge(dateRangeFields)
+  .merge(paginationSchema)
+  .refine(...dateRangeRefinement);
 
 export type ListActivityInput = z.infer<typeof listActivitySchema>;

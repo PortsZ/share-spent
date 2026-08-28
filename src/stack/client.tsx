@@ -7,7 +7,6 @@ import {
   type UseMutationOptions,
   type UseQueryOptions,
 } from "@tanstack/react-query";
-import { StackClientApp } from "@stackframe/stack";
 
 import type {
   CreateGroupInput,
@@ -85,10 +84,6 @@ import {
   reassignCategoryAction,
   confirmReceiptAction,
 } from "./server";
-
-export const stackClientApp = new StackClientApp({
-  tokenStore: "nextjs-cookie",
-});
 
 const serialize = <T extends object>(value: T) => JSON.stringify(value, (_, v) => {
   if (v instanceof Date) {
@@ -221,12 +216,12 @@ export const useCreateCategoryMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateCategoryInput) => createCategoryAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           Array.isArray(queryKey) && queryKey[0] === "categories" && queryKey[1] === variables.groupId,
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -238,12 +233,12 @@ export const useUpdateCategoryMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateCategoryInput) => updateCategoryAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           Array.isArray(queryKey) && queryKey[0] === "categories" && queryKey[1] === data.groupId,
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -255,12 +250,12 @@ export const useArchiveCategoryMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: ArchiveCategoryInput) => archiveCategoryAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           Array.isArray(queryKey) && queryKey[0] === "categories" && queryKey[1] === data.groupId,
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -272,12 +267,12 @@ export const useDeleteCategoryMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeleteCategoryInput) => deleteCategoryAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           Array.isArray(queryKey) && queryKey[0] === "categories" && queryKey[1] === data.groupId,
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -289,12 +284,12 @@ export const useReassignCategoryMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: ReassignCategoryInput) => reassignCategoryAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) =>
           Array.isArray(queryKey) && queryKey[0] === "categories" && queryKey[1] === data.groupId,
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -318,7 +313,7 @@ export const useReceiptsQuery = (
 
 export const useReceiptDetailQuery = (
   receiptId: string | null,
-  options?: UseQueryOptions<Awaited<ReturnType<typeof getReceiptDetailAction>>>,
+  options?: UseQueryOptions<Awaited<ReturnType<typeof getReceiptDetailAction>> | null>,
 ) =>
   useQuery({
     queryKey: receiptId ? queryKeys.receiptDetail(receiptId) : ["receipt"] as const,
@@ -338,11 +333,11 @@ export const useCreateReceiptMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateReceiptInput) => createReceiptAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipts",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -354,12 +349,12 @@ export const useUpdateReceiptMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateReceiptInput) => updateReceiptAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.receiptDetail(variables.receiptId) });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipts",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -371,12 +366,12 @@ export const useConfirmReceiptMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: ConfirmReceiptInput) => confirmReceiptAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.receiptDetail(variables.receiptId) });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipts",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -388,11 +383,11 @@ export const useDeleteReceiptMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeleteReceiptInput) => deleteReceiptAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipts",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -404,12 +399,12 @@ export const useCreateLineItemMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateLineItemInput) => createLineItemAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.receiptDetail(variables.receiptId) });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-line-items",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -421,12 +416,12 @@ export const useUpdateLineItemMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateLineItemInput) => updateLineItemAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.receiptDetail(variables.receiptId) });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-line-items",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -438,14 +433,14 @@ export const useDeleteLineItemMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: DeleteLineItemInput) => deleteLineItemAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipt",
       });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-line-items",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -457,14 +452,14 @@ export const useAssignParticipantsMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: BulkAssignmentInput) => assignLineItemParticipantsAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "receipt",
       });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-line-items",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -492,7 +487,7 @@ export const useRecordPaymentMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: RecordPaymentInput) => recordPaymentAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-payments",
       });
@@ -502,7 +497,7 @@ export const useRecordPaymentMutation = (
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "payment-history",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -514,14 +509,14 @@ export const useConfirmPaymentMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: ConfirmPaymentInput) => confirmPaymentAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-payments",
       });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "payment-history",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });
@@ -533,14 +528,14 @@ export const useRejectPaymentMutation = (
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: RejectPaymentInput) => rejectPaymentAction(input),
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "pending-payments",
       });
       void queryClient.invalidateQueries({
         predicate: ({ queryKey }) => Array.isArray(queryKey) && queryKey[0] === "payment-history",
       });
-      options?.onSuccess?.(data, variables, context);
+      options?.onSuccess?.(data, variables, onMutateResult, context);
     },
     ...options,
   });

@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --surface-muted: #f1f3f6;
+  --foreground: #10151c;
+  --muted-foreground: #5c6773;
+  --border: #e3e7ec;
+  --primary: #1f6feb;
+  --primary-foreground: #ffffff;
+  --success: #17864a;
+  --success-soft: #e4f5eb;
+  --warning: #9a6200;
+  --warning-soft: #fdf1dd;
+  --danger: #c2331f;
+  --danger-soft: #fceceb;
+  --ring: #1f6feb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b0f14;
+    --surface: #141a22;
+    --surface-muted: #1b232d;
+    --foreground: #e9eef5;
+    --muted-foreground: #93a1b1;
+    --border: #263140;
+    --primary: #4d8ef7;
+    --primary-foreground: #08111f;
+    --success: #4ecb85;
+    --success-soft: #10291c;
+    --warning: #e0a23c;
+    --warning-soft: #2a2113;
+    --danger: #f08272;
+    --danger-soft: #2c1613;
+    --ring: #4d8ef7;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  /* iOS zooms the viewport when a focused input is under 16px. */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+/* Bottom nav sits above the iOS home indicator; content clears both. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -2,8 +2,6 @@
 
 import "server-only";
 
-import { StackServerApp } from "@stackframe/stack";
-
 import { requireAuthContext, getCurrentUser } from "../lib/auth";
 import {
   createGroup,
@@ -91,10 +89,6 @@ import type {
 } from "../lib/schemas/payments";
 import type { MarkNotificationReadInput } from "../lib/schemas/notifications";
 import type { ListNotificationsInput } from "../lib/schemas/notifications";
-
-export const stackServerApp = new StackServerApp({
-  tokenStore: "nextjs-cookie",
-});
 
 const ensureProfile = async (clerkId: string) => {
   const user = await getCurrentUser();

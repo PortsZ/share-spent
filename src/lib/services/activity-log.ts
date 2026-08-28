@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 import { prisma } from "../db";
@@ -20,6 +20,9 @@ export type LogActivityInput = {
   client?: PrismaClientOrTx;
 };
 
+const toJsonInput = (value: Record<string, unknown> | null | undefined) =>
+  value == null ? Prisma.DbNull : (value as Prisma.InputJsonObject);
+
 export const logActivity = async ({
   actorId,
   groupId,
@@ -39,8 +42,9 @@ export const logActivity = async ({
       entityId,
       entityType,
       action,
-      before: before ?? null,
-      after: after ?? null,
+      // Prisma needs DbNull (SQL NULL) rather than a bare null for Json? fields.
+      before: toJsonInput(before),
+      after: toJsonInput(after),
     },
   });
 };

@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { cuid, decimalString, paginationSchema, dateRangeSchema } from "./shared";
+import {
+  cuid,
+  decimalString,
+  paginationSchema,
+  dateRangeFields,
+  dateRangeRefinement,
+} from "./shared";
 import { paymentStatusSchema } from "./receipts";
 
 export const recordPaymentSchema = z.object({
@@ -36,7 +42,8 @@ export const paymentHistoryFilterSchema = z
     sort: z.enum(["asc", "desc"]).default("desc"),
   })
   .merge(paginationSchema)
-  .merge(dateRangeSchema.partial());
+  .merge(dateRangeFields)
+  .refine(...dateRangeRefinement);
 
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
 export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;
