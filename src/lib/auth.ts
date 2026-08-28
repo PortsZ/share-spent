@@ -8,8 +8,8 @@ export type AuthContext = {
   orgId: string | null;
 };
 
-export const getAuthContext = (): AuthContext | null => {
-  const session = auth();
+export const getAuthContext = async (): Promise<AuthContext | null> => {
+  const session = await auth();
 
   if (!session.userId) {
     return null;
@@ -21,8 +21,8 @@ export const getAuthContext = (): AuthContext | null => {
   } satisfies AuthContext;
 };
 
-export const requireAuthContext = (): AuthContext => {
-  const context = getAuthContext();
+export const requireAuthContext = async (): Promise<AuthContext> => {
+  const context = await getAuthContext();
 
   if (!context) {
     throw new UnauthorizedError();
