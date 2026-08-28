@@ -1,12 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Home, Receipt, Wallet } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
 
 import { cn } from "../lib/utils";
-import { GroupSwitcher } from "./group-switcher";
 
 const tabs = [
   { href: "/groups", label: "Groups", icon: Home },
@@ -15,7 +14,22 @@ const tabs = [
   { href: "/notifications", label: "Alerts", icon: Bell },
 ];
 
-export const AppShell = ({ children }: { children: React.ReactNode }) => {
+export type AppShellProps = {
+  children: ReactNode;
+  /** Prefix for every tab link, so /demo can reuse the shell. */
+  basePath?: string;
+  /** Rendered at the right of the header (group switcher, account button…). */
+  headerSlot?: ReactNode;
+  /** Shown under the header, e.g. to mark the demo as sample data. */
+  banner?: ReactNode;
+};
+
+export const AppShell = ({
+  children,
+  basePath = "",
+  headerSlot,
+  banner,
+}: AppShellProps) => {
   const pathname = usePathname();
 
   return (
@@ -23,19 +37,16 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       <header className="pt-safe sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
           <Link
-            href="/groups"
+            href={`${basePath}/groups`}
             className="inline-flex min-h-11 items-center text-base font-semibold tracking-tight"
           >
             ShareSpent
           </Link>
-          <div className="flex min-w-0 items-center gap-2">
-            <GroupSwitcher />
-            <UserButton
-              appearance={{ elements: { avatarBox: "size-8" } }}
-              afterSignOutUrl="/"
-            />
-          </div>
+          {headerSlot ? (
+            <div className="flex min-w-0 items-center gap-2">{headerSlot}</div>
+          ) : null}
         </div>
+        {banner}
       </header>
 
       {/* pb-28 clears the fixed bottom nav so the last card is never trapped under it. */}
@@ -47,12 +58,13 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       >
         <ul className="mx-auto flex w-full max-w-2xl">
           {tabs.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const target = `${basePath}${href}`;
+            const active = pathname === target || pathname.startsWith(`${target}/`);
 
             return (
               <li key={href} className="flex-1">
                 <Link
-                  href={href}
+                  href={target}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "flex min-h-14 flex-col items-center justify-center gap-1 text-xs font-medium",

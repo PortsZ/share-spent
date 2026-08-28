@@ -6,18 +6,9 @@ import {
   useMarkNotificationReadMutation,
   useNotificationsQuery,
 } from "../../../stack/client";
-import { Card, CardSubtitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { EmptyState, ErrorState, SkeletonList } from "../../../components/ui/states";
-import { cn, formatDate } from "../../../lib/utils";
-
-const TITLES: Record<string, string> = {
-  RECEIPT_PROCESSING_FAILED: "Receipt failed to process",
-  RECEIPT_READY_FOR_REVIEW: "Receipt ready for review",
-  PAYMENT_PENDING: "Payment pending",
-  PAYMENT_CONFIRMED: "Payment confirmed",
-  INVITATION_RECEIVED: "Invitation received",
-};
+import { NotificationCard } from "../../../components/entities/notification-card";
 
 export default function NotificationsPage() {
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -54,34 +45,27 @@ export default function NotificationsPage() {
       <ul className="space-y-2">
         {data?.items.map((notification) => (
           <li key={notification.id}>
-            <Card
-              className={cn(
-                "flex items-start justify-between gap-3 p-3",
-                !notification.readAt && "border-primary/40",
-              )}
-            >
-              <div className="min-w-0">
-                <p className="font-medium">
-                  {TITLES[notification.type] ?? notification.title}
-                </p>
-                <p className="text-sm text-muted-foreground">{notification.message}</p>
-                <CardSubtitle className="mt-1 text-xs">
-                  {formatDate(notification.createdAt)}
-                </CardSubtitle>
-              </div>
-              {!notification.readAt ? (
-                <button
-                  type="button"
-                  className="min-h-11 shrink-0 px-2 text-sm font-semibold text-primary"
-                  disabled={markRead.isPending}
-                  onClick={() =>
-                    markRead.mutate({ notificationId: notification.id })
-                  }
-                >
-                  Mark read
-                </button>
-              ) : null}
-            </Card>
+            <NotificationCard
+              type={notification.type}
+              title={notification.title}
+              message={notification.message}
+              createdAt={notification.createdAt}
+              unread={!notification.readAt}
+              action={
+                !notification.readAt ? (
+                  <button
+                    type="button"
+                    className="min-h-11 shrink-0 px-2 text-sm font-semibold text-primary"
+                    disabled={markRead.isPending}
+                    onClick={() =>
+                      markRead.mutate({ notificationId: notification.id })
+                    }
+                  >
+                    Mark read
+                  </button>
+                ) : null
+              }
+            />
           </li>
         ))}
       </ul>

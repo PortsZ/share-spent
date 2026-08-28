@@ -1,4 +1,7 @@
+import { NextResponse } from 'next/server'
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+
+import { isClerkConfigured } from './lib/env'
 
 const isProtectedRoute = createRouteMatcher([
   '/groups(.*)',
@@ -7,11 +10,13 @@ const isProtectedRoute = createRouteMatcher([
   '/notifications(.*)',
 ])
 
-export default clerkMiddleware(async (auth, request) => {
-  if (isProtectedRoute(request)) {
-    await auth.protect()
-  }
-})
+export default isClerkConfigured
+  ? clerkMiddleware(async (auth, request) => {
+      if (isProtectedRoute(request)) {
+        await auth.protect()
+      }
+    })
+  : () => NextResponse.next()
 
 export const config = {
   matcher: [

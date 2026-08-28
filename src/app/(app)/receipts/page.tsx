@@ -1,25 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { useCreateReceiptMutation, useReceiptsQuery } from "../../../stack/client";
 import { RequireGroup } from "../../../components/require-group";
 import { Button } from "../../../components/ui/button";
-import { Card, CardSubtitle, CardTitle } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
+import { Card } from "../../../components/ui/card";
 import { FieldError, Input, Label, Select } from "../../../components/ui/field";
 import { EmptyState, ErrorState, SkeletonList } from "../../../components/ui/states";
-import { currencyFormatter, formatDate } from "../../../lib/utils";
-
-const STATUS_TONE = {
-  PROCESSING: "warning",
-  PENDING_REVIEW: "warning",
-  DRAFT: "neutral",
-  ACTIVE: "success",
-  ARCHIVED: "neutral",
-} as const;
+import { ReceiptCard } from "../../../components/entities/receipt-card";
 
 const NewReceiptForm = ({
   groupId,
@@ -147,36 +137,15 @@ const ReceiptList = ({ groupId }: { groupId: string }) => {
       <ul className="space-y-3">
         {receipts?.map((receipt) => (
           <li key={receipt.id}>
-            <Link href={`/receipts/${receipt.id}`} className="block">
-              <Card className="active:bg-surface-muted">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <CardTitle className="truncate">
-                      {receipt.merchantName ?? "Untitled receipt"}
-                    </CardTitle>
-                    <CardSubtitle>
-                      {receipt.receiptDate
-                        ? formatDate(receipt.receiptDate)
-                        : "No date"}
-                      {receipt.payer?.user?.displayName
-                        ? ` · paid by ${receipt.payer.user.displayName}`
-                        : null}
-                    </CardSubtitle>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="font-semibold tabular-nums">
-                      {currencyFormatter({
-                        amount: Number(receipt.totalAmount),
-                        currency: receipt.currency,
-                      })}
-                    </p>
-                    <Badge tone={STATUS_TONE[receipt.status]} className="mt-1">
-                      {receipt.status.replace("_", " ").toLowerCase()}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </Link>
+            <ReceiptCard
+              merchantName={receipt.merchantName}
+              receiptDate={receipt.receiptDate}
+              payerName={receipt.payer?.user?.displayName}
+              totalAmount={String(receipt.totalAmount)}
+              currency={receipt.currency}
+              status={receipt.status}
+              href={`/receipts/${receipt.id}`}
+            />
           </li>
         ))}
       </ul>

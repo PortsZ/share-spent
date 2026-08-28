@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+
+import { isClerkConfigured } from "../lib/env";
 import { Receipt, Split, Wallet } from "lucide-react";
 
 import { buttonVariants } from "../components/ui/button-variants";
@@ -24,10 +26,12 @@ const features = [
 ];
 
 export default async function Home() {
-  const { userId } = await auth();
+  if (isClerkConfigured) {
+    const { userId } = await auth();
 
-  if (userId) {
-    redirect("/groups");
+    if (userId) {
+      redirect("/groups");
+    }
   }
 
   return (
@@ -69,6 +73,13 @@ export default async function Home() {
           Sign in
         </Link>
       </div>
+
+      <Link
+        href="/demo"
+        className={buttonVariants({ variant: "ghost", size: "block" })}
+      >
+        Browse the demo — no account needed
+      </Link>
     </main>
   );
 }
