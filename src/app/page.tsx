@@ -74,12 +74,20 @@ export default async function Home() {
         </Link>
       </div>
 
-      <Link
-        href="/demo"
-        className={buttonVariants({ variant: "ghost", size: "block" })}
-      >
-        Browse the demo — no account needed
-      </Link>
+      <div className="space-y-2">
+        <Link
+          href="/demo"
+          className={buttonVariants({ variant: "ghost", size: "block" })}
+        >
+          Browse the demo — no account needed
+        </Link>
+        <Link
+          href="/calculator"
+          className={buttonVariants({ variant: "ghost", size: "block" })}
+        >
+          EV vs petrol cost calculator
+        </Link>
+      </div>
     </main>
   );
 }

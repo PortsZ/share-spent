@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Home, Receipt, Wallet } from "lucide-react";
+import { Bell, Car, Home, Receipt, Wallet } from "lucide-react";
 
 import { cn } from "../lib/utils";
 
@@ -12,6 +12,8 @@ const tabs = [
   { href: "/receipts", label: "Receipts", icon: Receipt },
   { href: "/payments", label: "Payments", icon: Wallet },
   { href: "/notifications", label: "Alerts", icon: Bell },
+  // Public and outside the group scope, so it is never basePath-prefixed.
+  { href: "/calculator", label: "Calc", icon: Car, absolute: true },
 ];
 
 export type AppShellProps = {
@@ -57,8 +59,8 @@ export const AppShell = ({
         className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 backdrop-blur"
       >
         <ul className="mx-auto flex w-full max-w-2xl">
-          {tabs.map(({ href, label, icon: Icon }) => {
-            const target = `${basePath}${href}`;
+          {tabs.map(({ href, label, icon: Icon, absolute }) => {
+            const target = absolute ? href : `${basePath}${href}`;
             const active = pathname === target || pathname.startsWith(`${target}/`);
 
             return (
